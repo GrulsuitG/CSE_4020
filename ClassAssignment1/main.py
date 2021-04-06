@@ -8,7 +8,9 @@ lasty = 320
 
 azimuth = 45
 elevation = 45
-distance = 20
+distance = 45
+
+zoom = 10
 
 atx=0
 aty=0
@@ -23,47 +25,46 @@ def render():
 
     glLoadIdentity()
 
-    # use orthogonal projection (we'll see details later)
-    #  glOrtho(-1,1, -1,1, -1,1)
+    # persepctive
     if viewing :
         gluPerspective(90, 1, 0.1, 100)
-    else:
-      glOrtho(-10,10, -10,10, -10,10)
-        
-    # rotate "camera" position (right-multiply the current matrix by viewing matrix)
-    # try to change parameters
-    gluLookAt(distance*np.cos(np.radians(elevation))*np.cos(np.radians(azimuth)),
+        glTranslatef(-atx, -aty, 0)
+        gluLookAt(distance*np.cos(np.radians(elevation))*np.cos(np.radians(azimuth)),
               distance*np.sin(np.radians(elevation)),
               distance*np.cos(np.radians(elevation))*np.sin(np.radians(azimuth)),
-              atx,aty,0, 0,1,0)    
-     
+              0,0 ,0, 0,1,0)
+    #orthogonal
+    else:
+        glOrtho(-100,100, -100,100, -100,100)
+        glTranslatef(-atx, -aty, 0)
+        glScalef(100/distance, 100/distance, 100/distance) 
+    #  rotate "camera" position (right-multiply the current matrix by viewing matrix)
+    #  try to change parameters
+        gluLookAt(np.cos(np.radians(elevation))*np.cos(np.radians(azimuth)),
+              np.sin(np.radians(elevation)),
+              np.cos(np.radians(elevation))*np.sin(np.radians(azimuth)),
+              0,0 ,0, 0,1,0)
+
+ 
     draw_grid()
 
 def key_callback(window, key, scancode, action, mods):
-    #  global gCamAng, gCamHeight
-    #  if action==glfw.PRESS or action==glfw.REPEAT:
-    #      if key==glfw.KEY_1:
-    #          gCamAng += np.radians(-10)
-    #      elif key==glfw.KEY_3:
-    #          gCamAng += np.radians(10)
-    #      elif key==glfw.KEY_2:
-    #          gCamHeight += .1
-    #      elif key==glfw.KEY_W:
-    #          gCamHeight += -.1
+   
     global viewing
+    # Toggle Persepective / orthogonal
     if action == glfw.PRESS and key ==glfw.KEY_V:
         viewing = not viewing
 
  
 def mouse_callback(window, button, action, mods):
-    global azimuth, lclick
+    global azimuth, lclick, rclick
     global xpos, ypos
     if button == glfw.MOUSE_BUTTON_LEFT:
         if action == glfw.PRESS:
             lclick = True
         if action == glfw.RELEASE:  
             lclick = False 
-    if button == glfw.MOUSE_BUTTON_RIGHT:
+    elif button == glfw.MOUSE_BUTTON_RIGHT:
         if action == glfw.PRESS:
             rclick = True
         if action == glfw.RELEASE:  
@@ -74,29 +75,30 @@ def cursor_callback(window, x, y):
     global azimuth, elevation, lclick, rclick
     global lastx, lasty, atx, aty
    
+    # orbit
     if lclick:  
         xoff = x - lastx
         yoff = lasty - y
         azimuth += xoff*0.1
         elevation -= yoff*0.1
-    if rclick:  
+    # panning
+    elif rclick:  
         atxoff = lastx - x
         atyoff = y - lasty
-        atx = atxoff
-        aty = atyoff
+        atx += atxoff*0.01
+        aty += atyoff*0.01
 
     lastx =x
     lasty =y 
-
+    
 
 def scroll_callback(window, x, y):
     global distance
-    
+    # zooming
     if distance-y < 0 or distance-y >90:
         distance
     else:
         distance -= y 
-   
  
 def draw_grid():
     rows = 10
@@ -135,7 +137,6 @@ def main():
     while not glfw.window_should_close(window):
         glfw.poll_events()
         render()
-        xpos, ypos =  glfw.get_cursor_pos(window)
         glfw.swap_buffers(window)
         
 
