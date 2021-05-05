@@ -48,6 +48,8 @@ def createVertexAndIndexArrayIndexed():
             ( 0.5773502691896258 , -0.5773502691896258 , -0.5773502691896258 ), #v6 normal
             ( -0.8164965809277261 , -0.4082482904638631 , -0.4082482904638631 ),#v7 normal
             ], 'float32')
+    print(iarr)
+  
     return varr, iarr, narr
 
 def drawCube_glDrawElements():
